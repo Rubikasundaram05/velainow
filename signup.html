@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Velainow – Register</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAWMGmNPOTeTgDAAX1KS1lzLZuGLe13VNY",
+      authDomain: "jobzo-84085.firebaseapp.com",
+      databaseURL: "https://jobzo-84085-default-rtdb.firebaseio.com/",
+      projectId: "jobzo-84085",
+      storageBucket: "jobzo-84085.appspot.com",
+      messagingSenderId: "885298915578",
+      appId: "1:885298915578:web:8fd56ab10110837c808143"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    function register(event) {
+      event.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const role = document.querySelector('input[name="role"]:checked').value;
+
+      const userData = { email, role };
+
+      if (role === "worker") {
+        const name = document.getElementById("name").value.trim();
+        const contact = document.getElementById("contact").value.trim();
+        const skill = document.getElementById("skill").value;
+        const pincode = document.getElementById("pincode").value.trim();
+
+        if (!name || !contact || !skill || !pincode) {
+          alert("Please fill all worker fields");
+          return;
+        }
+
+        // Add to separate worker node for dashboard logic
+        db.ref("workers/" + email.replace(/[.#$[\]]/g, "_")).set({
+          name,
+          contact,
+          skill,
+          pincode,
+          status: "Available"
+        });
+
+        Object.assign(userData, {
+          name,
+          contact,
+          skill,
+          pincode,
+          status: "Available"
+        });
+      }
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(userCred => {
+          const uid = userCred.user.uid;
+          db.ref('users/' + uid).set(userData).then(() => {
+            alert("✅ Registered successfully!");
+            window.location.href = "login.html";
+          });
+        })
+        .catch(error => alert("❌ " + error.message));
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('input[name="role"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+          document.getElementById("workerFields").style.display = this.value === "worker" ? "block" : "none";
+        });
+      });
+    });
+  </script>
+</head>
+<body class="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center" style="background-image: url('bg.png');">
+
+  <!-- Home Button -->
+<div class="absolute top-4 right-4">
+  <a href="index.html" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition">
+    Home
+  </a>
+</div>
+
+  <div class="max-w-md w-full bg-white p-8 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold mb-6 text-center text-blue-800">Register to Velainow</h2>
+    <form onsubmit="register(event)">
+      <input type="email" id="email" placeholder="Email" required class="w-full p-2 border rounded mb-4" />
+      <input type="password" id="password" placeholder="Password" required class="w-full p-2 border rounded mb-4" />
+
+      <div class="mb-4">
+        <label class="mr-4 font-semibold">I am a:</label>
+        <label><input type="radio" name="role" value="client" checked /> Client</label>
+        <label class="ml-4"><input type="radio" name="role" value="worker" /> Worker</label>
+      </div>
+
+      <div id="workerFields" class="hidden">
+        <input type="text" id="name" placeholder="Full Name" class="w-full p-2 border rounded mb-4" />
+        <input type="text" id="contact" placeholder="Phone Number" class="w-full p-2 border rounded mb-4" />
+        <select id="skill" class="w-full mb-4 px-4 py-2 border rounded">
+          <option value="">Select Required Skill</option>
+          <option value="Plumber">Plumber</option>
+          <option value="Electrician">Electrician</option>
+          <option value="Carpenter">Carpenter</option>
+          <option value="Mechanic">Mechanic</option>
+          <option value="Delivery Helper">Delivery Helper</option>
+        </select>
+        <input type="text" id="pincode" placeholder="Pincode" class="w-full p-2 border rounded mb-4" />
+      </div>
+
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Register</button>
+    </form>
+
+    <p class="mt-4 text-center text-sm">Already have an account? <a href="login.html" class="text-blue-700 font-semibold">Login</a></p>
+  </div>
+<script id="omnidimension-web-widget" async src="https://backend.omnidim.io/web_widget.js?secret_key=77003dbda0f3a1ee155d69cb237d319e" ></script>
+</body>
+</html>
